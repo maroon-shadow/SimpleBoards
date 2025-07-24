@@ -1,99 +1,103 @@
 ﻿using BepInEx;
-using Cinemachine;
+using BepInEx.Configuration;
+using Photon.Pun;
 using System;
-using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 
-namespace MotdChanger
+namespace SimpleBoards
 {
-    [BepInPlugin("com.maroon.shadow.SB", "SimpleBoards", "1.0.0")] // change this
+    [BepInPlugin("Shadow.SimpleBoards", "SimpleBoards", "1.0.0")]
     internal class Plugin : BaseUnityPlugin
     {
+        private TextMeshPro? tmp;
+        private GameObject? textObj;
+        private bool shouldUpdate = false;
 
-        private string path = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Gorilla Tag\\Boards\\motdText.txt";
-        private string pathA = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Gorilla Tag\\Boards\\cocText.txt";
-        private string pathAB = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Gorilla Tag\\Boards\\motdHeading.txt";
-        private string pathABC = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Gorilla Tag\\Boards\\cocHeading.txt";
-        private string pathABCD = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Gorilla Tag\\Boards";
-        private string lastTxt = "";
-        private float checking = 1f;
-        private float t = 0f;
-        private void Start() // does this right before spawn
+        private ConfigEntry<string>? stumptext;
+        private ConfigEntry<string>? motdtext;
+        private ConfigEntry<string>? motdheading;
+        private ConfigEntry<string>? coctext;
+        private ConfigEntry<string>? cocheading;
+        private ConfigEntry<bool>? enableFeatureA;
+        private ConfigEntry<bool>? enableFeatureB;
+        private ConfigEntry<bool>? enableFeatureC;
+
+
+        void Awake()
         {
-            bool Files = !File.Exists(this.pathABCD);
-            if (Files)
-            {
-                string folderName = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Gorilla Tag\\Boards";
-                Directory.CreateDirectory(folderName);
-            }
-            bool flag = !File.Exists(this.path);
-            if (flag)
-            {
-                File.WriteAllText(this.path, "Hi Player! Fun fact, you can change what this says in your Gorilla tag folder, there should be another folder called \"Boards\" in there you can change the name and text for both boards.");
-            }
-            bool flag1 = !File.Exists(this.pathA);
-            if (flag1)
-            {
-                File.WriteAllText(this.pathA, "Here are the steps:\nGo to your Gorilla Tag folder\nOpen \"Boards\"\nThen change the text in the .txt files");
-            }
-            bool flag2 = !File.Exists(this.pathAB);
-            if (flag2)
-            {
-                File.WriteAllText(this.pathAB, @"Shadow's Message of the day");
-            }
-            bool flag3 = !File.Exists(this.pathABC);
-            if (flag3)
-            {
-                File.WriteAllText(this.pathABC, @"Shadow's Guide");
-            }
-            GorillaTagger.OnPlayerSpawned(OnGameInit); // keep this
+            stumptext = Config.Bind<string>("Text", "Stump Text", "Hi there Shadow", "The text in the middle of stump");
+            motdtext = Config.Bind<string>("Text", "motd text", "Fun fact, you can change what this says, look the the code of conduct/guide board for the steps.", "The text on the message of the day board");
+            motdheading = Config.Bind<string>("Text", "motd heading", "Shadow's message of the day", "The heading on the message of the day board");
+            coctext = Config.Bind<string>("Text", "coc text", "Go to your Gorilla Tag folder\nThen BepInEx folder\nThen Config folder\nThen double click \"Shadow.SimpleBoards.cfg\"", "The text on the code of conduct board");
+            cocheading = Config.Bind<string>("Text", "coc heading", "Shadow's Guide", "The heading on the code of conduct board");
+            enableFeatureA = Config.Bind<bool>("Bool", "Stump Text enabled?", true, "Toggles the Stump Text on or off");
+            enableFeatureB = Config.Bind<bool>("Bool", "Motd enabled?", true, "Toggles the custom Motd board on or off");
+            enableFeatureC = Config.Bind<bool>("Bool", "Coc enabled?", true, "Toggles the custom coc board on or off");
+        }
+        private void Start()
+        {
+            GorillaTagger.OnPlayerSpawned(OnGameInit);
+        }
+
+        void OnEnable()
+        {
+            //shouldUpdate = true;
+        }
+
+        void OnDisable()
+        {
+            //shouldUpdate = false;
         }
 
         private void OnGameInit()
         {
             _ = RunInitSequence();
+            if (enableFeatureA.Value)
+            {
+                CreateTMPWorldText();
+            }
+        }
+
+        void Update()
+        {
+            Vector3 forward = Camera.main.transform.forward;
+
+            if (forward != Vector3.zero)
+            {
+                textObj.transform.rotation = Quaternion.LookRotation(forward);
+            }
         }
 
         private async Task RunInitSequence()
         {
-            try
+            await Task.Delay(10000);
+            if (enableFeatureB.Value)
             {
-                await Task.Delay(12000);
-                UpdateMOTD();
+                try
+                {
+                    UpdateMOTD();
+                }
+                catch (Exception)
+                {
+                }
             }
-            catch (Exception ex)
+            await Task.Delay(1000);
+            if (enableFeatureC.Value)
             {
-
+                try
+                {
+                    UpdateCoc();
+                }
+                catch (Exception)
+                {
+                }
             }
-
-            try
-            {
-                await Task.Delay(1000);
-                UpdateCoc();
-            }
-            catch (Exception ex)
-            {
-
-            }
-        }
-
-
-
-        private void Update() // does this every frame
-        {
-
         }
 
         private void UpdateMOTD()
         {
-            string Heading = File.ReadAllText(this.pathAB);
-            string text = File.ReadAllText(this.path);
-            bool flag = File.Exists(this.path);
-            if (flag)
-            {
                 GameObject gameObject = GameObject.Find("motdBodyText");
                 bool flag1 = gameObject != null;
                 if (flag1)
@@ -102,8 +106,7 @@ namespace MotdChanger
                     bool flag2 = component != null;
                     if (flag2)
                     {
-                        component.text = text;
-                        this.lastTxt = text;
+                        component.text = motdtext.Value;
                     }
                 }
 
@@ -115,23 +118,17 @@ namespace MotdChanger
                     bool flag3 = componentB != null;
                     if (flag3)
                     {
-                        componentB.text = Heading;
-                        this.lastTxt = text;
+                        componentB.text = motdheading.Value;
                     }
                 }
+                UpdateCoc();
 
                 GameObject gameObjectD = GameObject.Find("TMP SubMesh [LiberationSans SDF Material]");
                 gameObjectD.SetActive(false);
             }
-        }
 
-        public void UpdateCoc()
+        private void UpdateCoc()
         {
-            string Heading = File.ReadAllText(this.pathABC);
-            string textA = File.ReadAllText(this.pathA);
-            bool flag = File.Exists(this.pathA);
-            if (flag)
-            {
                 GameObject gameObject = GameObject.Find("COCBodyText_TitleData");
                 bool flag1 = gameObject != null;
                 if (flag1)
@@ -140,8 +137,7 @@ namespace MotdChanger
                     bool flag2 = component != null;
                     if (flag2)
                     {
-                        component.text = textA;
-                        this.lastTxt = textA;
+                        component.text = coctext.Value;
                     }
                 }
 
@@ -153,11 +149,24 @@ namespace MotdChanger
                     bool flag2 = componentA != null;
                     if (flag2)
                     {
-                        componentA.text = Heading;
-                        this.lastTxt = textA;
+                        componentA.text = cocheading.Value;
                     }
                 }
-            }
+        }
+
+        private void CreateTMPWorldText()
+        {
+            textObj = new GameObject("Stump Text");
+            textObj.transform.position = new Vector3(-66.9232f, 12.05f, -82.5794f);
+            textObj.transform.localScale = Vector3.one * 0.1f;
+
+            tmp = textObj.AddComponent<TextMeshPro>();
+            tmp.text = stumptext.Value;
+            tmp.fontSize = 10f;
+            tmp.alignment = TextAlignmentOptions.Center;
+
+
+            shouldUpdate = true;
         }
     }
 }
