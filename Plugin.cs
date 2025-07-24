@@ -13,22 +13,21 @@ namespace SimpleBoards
     {
         private TextMeshPro? tmp;
         private GameObject? textObj;
-        private bool shouldUpdate = false;
+        private bool shouldUpdate;
 
-        private ConfigEntry<string>? stumptext;
-        private ConfigEntry<string>? motdtext;
-        private ConfigEntry<string>? motdheading;
-        private ConfigEntry<string>? coctext;
-        private ConfigEntry<string>? cocheading;
+        ConfigEntry<string>? stumptext;
+        ConfigEntry<string>? motdtext;
+        ConfigEntry<string>? motdheading;
+        ConfigEntry<string>? coctext;
+        ConfigEntry<string>? cocheading;
 
-        private ConfigEntry<bool>? enableFeatureA;
-        private ConfigEntry<bool>? enableFeatureB;
-        private ConfigEntry<bool>? enableFeatureC;
+        ConfigEntry<bool>? enableFeatureA;
+        ConfigEntry<bool>? enableFeatureB;
+        ConfigEntry<bool>? enableFeatureC;
+        
+        ConfigEntry<float>? StumpFloat;
 
-        private ConfigEntry<float>? StumpFloat;
-
-
-        void Awake()
+        private void Start()
         {
             //stumptext = Config.Bind<string>("Text", "Stump Text", "Hi there Shadow", "The text in the middle of stump");
             motdtext = Config.Bind<string>("Text", "motd text", "Fun fact, you can change what this says, look the the code of conduct/guide board for the steps.", "The text on the message of the day board");
@@ -41,9 +40,7 @@ namespace SimpleBoards
             enableFeatureC = Config.Bind<bool>("Bool", "Coc enabled?", true, "Toggles the custom coc board on or off");
 
             //StumpFloat = Config.Bind<float>("Float", "Stump Text height", 12.05f, "Changes how high or low the Stump Text is");
-        }
-        private void Start()
-        {
+
             GorillaTagger.OnPlayerSpawned(OnGameInit);
         }
 
@@ -57,12 +54,12 @@ namespace SimpleBoards
             shouldUpdate = false;
         }
 
-        private void OnGameInit()
+        void OnGameInit()
         {
             _ = RunInitSequence();
             if (enableFeatureA.Value)
             {
-                //CreateTMPWorldText();
+               // CreateTMPWorldText();
             }
         }
 
@@ -76,29 +73,16 @@ namespace SimpleBoards
             }
         }
 
-        private async Task RunInitSequence()
+        async Task RunInitSequence()
         {
             await Task.Delay(10000);
             if (enableFeatureB.Value)
             {
-                try
-                {
-                    UpdateMOTD();
-                }
-                catch (Exception)
-                {
-                }
+                UpdateMOTD();
             }
-            await Task.Delay(1000);
             if (enableFeatureC.Value)
             {
-                try
-                {
-                    UpdateCoc();
-                }
-                catch (Exception)
-                {
-                }
+                UpdateCoc();
             }
         }
 
@@ -127,11 +111,9 @@ namespace SimpleBoards
                         componentB.text = motdheading.Value;
                     }
                 }
-                UpdateCoc();
 
-                GameObject gameObjectD = GameObject.Find("TMP SubMesh [LiberationSans SDF Material]");
-                gameObjectD.SetActive(false);
-            }
+                GameObject.Find("TMP SubMesh [LiberationSans SDF Material]")?.SetActive(false);
+        }
 
         private void UpdateCoc()
         {
@@ -149,7 +131,7 @@ namespace SimpleBoards
 
                 GameObject gameObjectA = GameObject.Find("CodeOfConductHeadingText");
                 bool flag1A = gameObjectA != null;
-                if (flag1)
+                if (flag1A)
                 {
                     TextMeshPro componentA = gameObjectA.GetComponent<TextMeshPro>();
                     bool flag2 = componentA != null;
