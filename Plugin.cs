@@ -20,21 +20,27 @@ namespace SimpleBoards
         private ConfigEntry<string>? motdheading;
         private ConfigEntry<string>? coctext;
         private ConfigEntry<string>? cocheading;
+
         private ConfigEntry<bool>? enableFeatureA;
         private ConfigEntry<bool>? enableFeatureB;
         private ConfigEntry<bool>? enableFeatureC;
 
+        private ConfigEntry<float>? StumpFloat;
+
 
         void Awake()
         {
-            stumptext = Config.Bind<string>("Text", "Stump Text", "Hi there Shadow", "The text in the middle of stump");
+            //stumptext = Config.Bind<string>("Text", "Stump Text", "Hi there Shadow", "The text in the middle of stump");
             motdtext = Config.Bind<string>("Text", "motd text", "Fun fact, you can change what this says, look the the code of conduct/guide board for the steps.", "The text on the message of the day board");
             motdheading = Config.Bind<string>("Text", "motd heading", "Shadow's message of the day", "The heading on the message of the day board");
             coctext = Config.Bind<string>("Text", "coc text", "Go to your Gorilla Tag folder\nThen BepInEx folder\nThen Config folder\nThen double click \"Shadow.SimpleBoards.cfg\"", "The text on the code of conduct board");
             cocheading = Config.Bind<string>("Text", "coc heading", "Shadow's Guide", "The heading on the code of conduct board");
-            enableFeatureA = Config.Bind<bool>("Bool", "Stump Text enabled?", true, "Toggles the Stump Text on or off");
+
+            //enableFeatureA = Config.Bind<bool>("Bool", "Stump Text enabled?", true, "Toggles the Stump Text on or off");
             enableFeatureB = Config.Bind<bool>("Bool", "Motd enabled?", true, "Toggles the custom Motd board on or off");
             enableFeatureC = Config.Bind<bool>("Bool", "Coc enabled?", true, "Toggles the custom coc board on or off");
+
+            //StumpFloat = Config.Bind<float>("Float", "Stump Text height", 12.05f, "Changes how high or low the Stump Text is");
         }
         private void Start()
         {
@@ -43,12 +49,12 @@ namespace SimpleBoards
 
         void OnEnable()
         {
-            //shouldUpdate = true;
+            shouldUpdate = true;
         }
 
         void OnDisable()
         {
-            //shouldUpdate = false;
+            shouldUpdate = false;
         }
 
         private void OnGameInit()
@@ -56,7 +62,7 @@ namespace SimpleBoards
             _ = RunInitSequence();
             if (enableFeatureA.Value)
             {
-                CreateTMPWorldText();
+                //CreateTMPWorldText();
             }
         }
 
@@ -157,7 +163,7 @@ namespace SimpleBoards
         private void CreateTMPWorldText()
         {
             textObj = new GameObject("Stump Text");
-            textObj.transform.position = new Vector3(-66.9232f, 12.05f, -82.5794f);
+            textObj.transform.position = new Vector3(-66.9232f, StumpFloat.Value, -82.5794f);
             textObj.transform.localScale = Vector3.one * 0.1f;
 
             tmp = textObj.AddComponent<TextMeshPro>();
